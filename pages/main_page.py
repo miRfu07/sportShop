@@ -7,10 +7,12 @@ import time
 import pytest
 
 from base.base_class import Base
+from utilities import logger
+
 options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(options=options)
 
-class main_page(Base):
+class Main_page(Base):
 
     def __init__(self, driver):
         super().__init__(driver)  # указываем, что это потомок
@@ -119,19 +121,24 @@ class main_page(Base):
     # Methods
 
     def select_prod(self):
-        # здесь приходилось каждый раз тыкать кнопку ПОКАЗАТЬ, чтобы обновить ассортимент
-        # и один раз явно посмотреть на "ПОКАЗАТЬ", иначе система не понимала на что нажимать
+        # на странице необходимо нажимать кнопку ПОКАЗАТЬ, для обновления ассортимента
+        logger.Logger.add_start_step(method='select_prod')
+        # выбор различных фильтров
         self.click_catalog()
         self.click_protein()
         self.click_and_hold_price()
         self.click_watch_btn()
         self.click_sivorotka()
         self.click_watch_btn()
+        # необходимо явно посмотреть на кнопку "показать", для нажатия
         self.action.move_to_element(self.get_chocolate()).perform()
         self.click_chocolate()
         self.click_watch_btn()
         self.click_sort()
         self.click_sort_expensive()
+        # добавить ещё один такой товар
         self.click_plus_btn()
         self.click_add_to_cart()
+        # перейти в корзину
         self.click_btn_go_to()
+        logger.Logger.add_end_step(url=self.driver.current_url, method='select_prod')

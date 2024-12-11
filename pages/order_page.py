@@ -6,14 +6,19 @@ import time
 import pytest
 
 from base.base_class import Base
+from pages import cart_page
+from pages.cart_page import Cart_page
+from utilities import logger
 
 
-class order_page(Base):
+class Order_page(Base):
 
     def __init__(self, driver):
         super().__init__(driver)  # указываем, что это потомок
         self.action = ActionChains(self.driver)
         self.driver = driver
+
+
 
     # Locators
 
@@ -71,7 +76,7 @@ class order_page(Base):
         return WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, self.continue_button)))
 
     def get_capcha(self):
-        return WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, self.capcha)))
+        return WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.XPATH, self.capcha)))
 
     # Actions
 
@@ -96,7 +101,7 @@ class order_page(Base):
         print('payment by card')
 
     def enter_mail(self, mail):
-        # при прохождении авторизации подтягиваются старые данные, поэтому необходимо их стереть сначала
+        # при прохождении авторизации подтягиваются старые данные, поэтому необходимо сперва очистить поле
         self.get_mail().send_keys(Keys.CONTROL+"a")
         self.get_mail().send_keys(mail)
         print('enter mail')
@@ -106,19 +111,19 @@ class order_page(Base):
         print('enter phone')
 
     def enter_name(self, name):
-        # при прохождении авторизации подтягиваются старые данные, поэтому необходимо их стереть сначала
+        # при прохождении авторизации подтягиваются старые данные, поэтому необходимо сперва очистить поле
         self.get_name().send_keys(Keys.CONTROL+"a")
         self.get_name().send_keys(name)
         print('enter name')
 
     def enter_family(self, family):
-        # при прохождении авторизации подтягиваются старые данные, поэтому необходимо их стереть сначала
+        # при прохождении авторизации подтягиваются старые данные, поэтому необходимо сперва очистить поле
         self.get_family().send_keys(Keys.CONTROL+"a")
         self.get_family().send_keys(family)
         print('enter family')
 
     def enter_postcode(self, z1p):
-        # при прохождении авторизации подтягиваются старые данные, поэтому необходимо их стереть сначала
+        # при прохождении авторизации подтягиваются старые данные, поэтому необходимо сперва очистить поле
         self.get_postcode().send_keys(Keys.CONTROL+"a")
         self.get_postcode().send_keys(z1p)
         print('entered postal code')
@@ -134,13 +139,15 @@ class order_page(Base):
     # Methods
 
     def info_for_order(self):
+        logger.Logger.add_start_step(method='info_for_order')
         self.assert_url(self.current_url)
         self.get_current_url()
         self.click_next_btn()
+        # выбор адреса доставки
         self.click_delivery_btn()
         self.click_delivery_address()
         self.click_delivery_accept()
-        # почему-то без явного ожидания тест падает после каждого нажатия ДАЛЕЕ и не хочет ждать появления кнопок
+        # необходимо явное ожидания, иначе тест падает при нажатии кнопки ДАЛЕЕ
         time.sleep(2)
         self.click_next_btn()
         time.sleep(2)
@@ -148,6 +155,7 @@ class order_page(Base):
         time.sleep(2)
         self.click_next_btn()
         time.sleep(2)
+        # ввод личной информации
         self.enter_mail('ternovia123@mail.ru')
         self.enter_phone('79165555555')
         self.enter_name('Qwe')
@@ -155,7 +163,16 @@ class order_page(Base):
         self.enter_postcode('101101')
         self.click_next_btn()
         time.sleep(2)
-        self.click_cookie() # из-за этого банера не получается нажать на кнопку оформить заказ
-        self.click_continue()  # далее требуется ввести капчу и заказ сразу сформируется, поэтому не перехожу дальше
+        # закрываем всплывающий баннер
+        self.click_cookie()
+        self.click_continue()
+        # далее требуется ввести капчу и заказ сразу сформируется, на этом тест заканчивается
         self.assert_word(self.get_capcha(), 'Капча не пройдена')
-        print('Капча не пройдена')
+        print('Капча не пройдена' + '\nТест окончен, пройдём на шаг назад и отчистим корзину')
+        self.driver.back()
+        print('Вернулись')
+        # необходимо на другой странице нажать на отмену заказа
+        cp = Cart_page(self.driver)
+        self.action.move_to_element(cp.get_cancel_btn()).perform()
+        cp.click_cancel_btn()
+        logger.Logger.add_end_step(url=self.driver.current_url, method='info_for_order')

@@ -6,9 +6,10 @@ import time
 import pytest
 
 from base.base_class import Base
+from utilities import logger
 
 
-class login_pass(Base):
+class Login_pass(Base):
     url = 'https://lactomin.ru/'
 
     def __init__(self, driver):
@@ -57,6 +58,7 @@ class login_pass(Base):
     # Methods
 
     def authorization(self):
+        logger.Logger.add_start_step(method='authorization')
         self.driver.get(self.url)
         self.driver.maximize_window()
         self.get_current_url()
@@ -64,3 +66,4 @@ class login_pass(Base):
         self.input_mail('ternovia123@mail.ru')
         self.input_password('NFC-Srp-Nfj-6Eg')  # 4m7-aHa-hAP-Z9B
         self.click_login_btn()
+        logger.Logger.add_end_step(url=self.driver.current_url, method='authorization')

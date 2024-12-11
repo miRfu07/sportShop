@@ -8,10 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 import pytest
 
-from pages.cart_page import cart_page
-from pages.order_page import order_page
-from pages.login_page import login_pass
-from pages.main_page import main_page
+from pages.cart_page import Cart_page
+from pages.order_page import Order_page
+from pages.login_page import Login_pass
+from pages.main_page import Main_page
 
 
 options = webdriver.ChromeOptions()  # твой путь браузера-
@@ -34,19 +34,26 @@ def test_sport_prod(set_up):
 
     print('Starting')
 
-    login = login_pass(driver)
+    # авторизация на сайте, ввод логин\пароль
+    login = Login_pass(driver)
     login.authorization()
 
-    mp = main_page(driver)
+    # выбор товара в соответствии с фильтрами
+    mp = Main_page(driver)
     mp.select_prod()
 
-    cp = cart_page(driver)
+    # сверка общей цены и скидки
+    cp = Cart_page(driver)
     cp.order()
 
-    op = order_page(driver)
+    # оформление заказа и заполнение полей доставки
+    op = Order_page(driver)
     op.info_for_order()
 
     print('Finished')
+
+    # закрытие браузера
+    driver.quit()
 
 
 # использовался для быстрого прохождения до нужных моментов, минуя авторизацию и прочие пункты
@@ -55,13 +62,13 @@ def test_speed():
     #url = 'https://lactomin.ru'
     url = 'https://lactomin.ru/catalog/proteiny/'
     driver.get(url)
-    mp = main_page(driver)
+    mp = Main_page(driver)
     mp.click_add_to_cart()
     mp.click_btn_go_to()
 
-    cp = cart_page(driver)
+    cp = Cart_page(driver)
     cp.click_order_btn()
 
-    op = order_page(driver)
+    op = Order_page(driver)
     op.info_for_order()
 
